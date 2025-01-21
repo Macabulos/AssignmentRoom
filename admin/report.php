@@ -30,12 +30,12 @@ $query = "
         s.time,
         s.time_end,
         subj.subject_title,
-        t.Name as teacher_name
+        t.Name AS teacher_name
     FROM schedule s
     LEFT JOIN subject subj ON s.subject = subj.subject_code
     LEFT JOIN teacher t ON s.teacher = t.Name
+    GROUP BY s.schedule_id
     ORDER BY s.schedule_id DESC";
-
 $result = $conn->query($query);
 if (!$result) {
     die("Query failed: " . $conn->error);
