@@ -7,8 +7,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 // Database connection details
 $servername = "localhost";
-$username = "root"; // Default username for XAMPP
-$password = "";     // Default password for XAMPP
+$username = "root";
+$password = "";
 $dbname = "adfc_db";
 
 // Connect to the database
@@ -19,16 +19,23 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Database query
+// Updated query based on the actual database structure
 $query = "
-SELECT schedule.*, subject.subject_title, teacher.Name
-FROM schedule
-LEFT JOIN subject ON schedule.subject = subject.subject_code
-LEFT JOIN teacher ON teacher.teacher_id = teacher.teacher_id
-GROUP BY schedule.schedule_id
-ORDER BY schedule.schedule_id DESC";
+    SELECT 
+        s.schedule_id,
+        s.subject,
+        s.teacher,
+        s.room,
+        s.day,
+        s.time,
+        s.time_end,
+        subj.subject_title,
+        t.Name as teacher_name
+    FROM schedule s
+    LEFT JOIN subject subj ON s.subject = subj.subject_code
+    LEFT JOIN teacher t ON s.teacher = t.Name
+    ORDER BY s.schedule_id DESC";
 
-// Execute query and check for errors
 $result = $conn->query($query);
 if (!$result) {
     die("Query failed: " . $conn->error);
@@ -38,51 +45,76 @@ if (!$result) {
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
-// Add headers for the spreadsheet
-$sheet->setCellValue('A1', 'Subject');
-$sheet->setCellValue('B1', 'Teacher');
-$sheet->setCellValue('C1', 'Start Time');
-$sheet->setCellValue('D1', 'End Time');
+// Set up headers with more detailed information
+$sheet->setCellValue('A1', 'Schedule ID');
+$sheet->setCellValue('B1', 'Subject Code');
+$sheet->setCellValue('C1', 'Description');
+$sheet->setCellValue('D1', 'Teacher');
+$sheet->setCellValue('E1', 'Room');
+$sheet->setCellValue('F1', 'Day');
+$sheet->setCellValue('G1', 'Start Time');
+$sheet->setCellValue('H1', 'End Time');
 
-// Style headers (make them bold and center them)
-$sheet->getStyle('A1:D1')->getFont()->setBold(true);
-$sheet->getStyle('A1:D1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle('A1:D1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+// Style headers
+$headerRange = 'A1:K1';
+$sheet->getStyle($headerRange)->applyFromArray([
+    'font' => [
+        'bold' => true
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER
+    ]
+]);
 
-// Start populating the rows with data
-$currentRow = 2; // Start from the second row, because the first row has headers
+// Auto-size columns for better readability
+foreach (range('A', 'K') as $col) {
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
 
+// Populate data
+$currentRow = 2;
 while ($data = $result->fetch_assoc()) {
-    $sheet->setCellValue('A' . $currentRow, $data['subject_title']);
-    $sheet->setCellValue('B' . $currentRow, $data['Name']);
-    $sheet->setCellValue('C' . $currentRow, $data['start_time']);
-    $sheet->setCellValue('D' . $currentRow, $data['end_time']);
-    
+    $sheet->setCellValue('A' . $currentRow, $data['schedule_id']);
+    $sheet->setCellValue('B' . $currentRow, $data['subject']);
+    $sheet->setCellValue('C' . $currentRow, $data['subject_title']);
+    $sheet->setCellValue('D' . $currentRow, $data['teacher_name'] ?? $data['teacher']);
+    $sheet->setCellValue('E' . $currentRow, $data['room']);
+    $sheet->setCellValue('F' . $currentRow, $data['day']);
+    $sheet->setCellValue('G' . $currentRow, $data['time']);
+    $sheet->setCellValue('H' . $currentRow, $data['time_end']);
+    // Center-align the data cells
+    $sheet->getStyle('A' . $currentRow . ':K' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
     $currentRow++;
 }
 
 // Ensure output directory exists and is writable
-$outputDir = 'C:/xampp/htdocs/Ass/admin/output/';
+$outputDir = 'output/';
 if (!is_dir($outputDir)) {
     mkdir($outputDir, 0777, true);
 }
+
 if (!is_writable($outputDir)) {
     die("Error: The output directory is not writable.");
 }
 
-// Path to save the generated Excel file
-$outputPath = $outputDir . 'schedule_report.xlsx';
+// Generate unique filename with timestamp
+$timestamp = date('Y-m-d_H-i-s');
+$outputPath = $outputDir . 'schedule_report_' . $timestamp . '.xlsx';
 
 try {
     $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
     $writer->save($outputPath);
-    
+
     echo "<script>
-            alert('Excel report created successfully!');
-            window.location.href = 'schedule.php';  // Redirect to desired page
+            alert('Schedule report has been generated successfully!');
+            window.location.href = 'output/schedule_report_" . $timestamp . ".xlsx';
+             
           </script>";
 } catch (Exception $e) {
     die("Error saving the Excel file: " . $e->getMessage());
+    
 }
 
 // Close the database connection

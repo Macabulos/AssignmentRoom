@@ -20,7 +20,7 @@ include('./components/main.php');
 				<tr>
 				<th>Subject Code</th>
 				<th>Subject Title</th>
-				<th>Semester</th>
+				<!-- <th>Semester</th> -->
 				<th>Subject Category</th>
 				<th>Action</th>
 				</tr>
@@ -35,7 +35,7 @@ while($row=mysqli_fetch_array($result)){ $id=$row['Subject_id'];
 <tr class="del<?php echo $id ?>" style="text-align: center;">
 	<td><?php echo $row['subject_code']; ?></td>
 	<td><?php echo $row['subject_title']; ?></td>
-	<td><?php echo $row['semester']; ?></td>
+	<!-- <td><?php echo $row['semester']; ?></td> -->
 	<td><?php echo $row['subject_category']; ?></td>
 	
 

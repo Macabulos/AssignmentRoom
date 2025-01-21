@@ -99,7 +99,7 @@ include('./components/main.php');
 
 <?php include('footer.php'); ?>
 
-</div>
+<!-- </div>
 
 				<div class="modal hide fade" id="teacher">
 	<div class="modal-header">
@@ -332,7 +332,7 @@ while($sy_row=mysqli_fetch_array($sy_query)){
 	  <div class="modal-footer">
 	    <a href="#" class="btn" data-dismiss="modal">Close</a>
 		</div>
-		</div>
+		</div> -->
 				
 		
 

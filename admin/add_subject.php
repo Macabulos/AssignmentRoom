@@ -48,7 +48,7 @@ include('./components/main.php');
 	
 	
 	
-	
+<!-- 	
 	<div class="control-group">
     <label class="control-label" for="input01">Semester:</label>
     <div class="controls">
@@ -59,7 +59,7 @@ include('./components/main.php');
 	<option>Summer</option>
 	</select>
     </div>
-    </div>
+    </div> -->
 	
 	
 		
